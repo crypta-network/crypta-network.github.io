@@ -406,45 +406,57 @@ const ThemeSwitcherModule = (() => {
       return n.includes('sha256sum') || n.endsWith('sha256sums.txt') || n.includes('checksum');
     };
 
+    const buildExtOrder = (os, distro) => {
+      if (os === 'win') return EXT_PRIORITIES.win;
+      if (os === 'mac') return EXT_PRIORITIES.mac;
+      if (os === 'linux') {
+        if (distro === 'deb') return ['.deb', ...EXT_PRIORITIES.nix, ...EXT_PRIORITIES.any];
+        if (distro === 'rpm') return ['.rpm', ...EXT_PRIORITIES.nix, ...EXT_PRIORITIES.any];
+        return [...EXT_PRIORITIES.nix, ...EXT_PRIORITIES.any];
+      }
+      return EXT_PRIORITIES.any;
+    };
+
+    const extIndex = (order, name) => {
+      const idx = order.indexOf(extOf(name));
+      return idx === -1 ? 999 : idx;
+    };
+
+    const arm64RankForWindows = (info, name) => {
+      if (info?.arch !== 'arm64') return 0;
+      const arch = archFromName(name);
+      if (arch === 'arm64') return 0; // best
+      return 1; // deprioritize non‑ARM on ARM devices
+    };
+
     const chooseBest = (assets, info) => {
       const pool = assets.filter(a => !isChecksum(a.name));
       const os = info?.os || osFromUA();
       const distro = distroFromUA();
-      if (os === 'win') {
-        // Prefer native ARM64 if the browser reports ARM64
-        if (info?.arch === 'arm64') {
-          const armCand = pool.find(a => (extOf(a.name) === '.exe' || extOf(a.name) === '.msi') && archFromName(a.name) === 'arm64');
-          if (armCand) return armCand;
-        }
-        for (const ext of EXT_PRIORITIES.win) {
-          // If we know we're on ARM64, try to avoid x86-only unless no choice
-          const match = pool.find(a => extOf(a.name) === ext && (info?.arch !== 'arm64' || archFromName(a.name) !== 'x86_64'))
-                    || pool.find(a => extOf(a.name) === ext);
-          if (match) return match;
-        }
-      } else if (os === 'mac') {
-        for (const ext of EXT_PRIORITIES.mac) {
-          const match = pool.find(a => extOf(a.name) === ext);
-          if (match) return match;
-        }
-      } else if (os === 'linux') {
-        if (distro === 'deb') {
-          const deb = pool.find(a => extOf(a.name) === '.deb');
-          if (deb) return deb;
-        }
-        if (distro === 'rpm') {
-          const rpm = pool.find(a => extOf(a.name) === '.rpm');
-          if (rpm) return rpm;
-        }
-        for (const ext of EXT_PRIORITIES.nix) {
-          const match = pool.find(a => extOf(a.name) === ext);
-          if (match) return match;
-        }
+      const order = buildExtOrder(os, distro);
+
+      const candidates = pool
+        .filter(a => a.browser_download_url)
+        .filter(a => order.includes(extOf(a.name)));
+
+      if (candidates.length) {
+        candidates.sort((a, b) => {
+          const ea = extIndex(order, a.name);
+          const eb = extIndex(order, b.name);
+          if (ea !== eb) return ea - eb;
+          if (os === 'win') {
+            return arm64RankForWindows(info, a.name) - arm64RankForWindows(info, b.name);
+          }
+          return 0;
+        });
+        return candidates[0];
       }
-      for (const ext of EXT_PRIORITIES.any) {
-        const match = pool.find(a => extOf(a.name) === ext);
-        if (match) return match;
-      }
+
+      // Fallback to generic archives order
+      const generic = pool
+        .filter(a => EXT_PRIORITIES.any.includes(extOf(a.name)))
+        .sort((a, b) => extIndex(EXT_PRIORITIES.any, a.name) - extIndex(EXT_PRIORITIES.any, b.name));
+      if (generic.length) return generic[0];
       return pool[0] || null;
     };
 
