@@ -199,9 +199,9 @@
   --dismiss-btn-hover-border: rgba(255, 255, 255, 0.25);
 }
 
-/* ==========================================
-   LIGHT THEME TOKENS (explicit override)
-   ========================================== */
+  /* ==========================================
+     LIGHT THEME TOKENS (explicit override)
+     ========================================== */
 :root[data-theme="light"] {
   /* Base surfaces & text - explicit light theme values */
   --bg-primary: #ffffff;
@@ -278,6 +278,158 @@
 }
 
 /* ==========================================
+   PAGE COMPONENTS (migrated from index.html)
+   ========================================== */
+
+/* Navbar logo uses project logo */
+.logo-link {
+  background-image: url('images/crypta_logo.png');
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+/* Ensure navbar is flush to the top */
+#navbar { top: 0; }
+
+/* Layout containers */
+main#content {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 80px var(--content-padding) 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 120px;
+}
+
+section {
+  display: grid;
+  gap: 32px;
+}
+
+/* Hero section */
+.hero {
+  position: relative;
+  padding: 48px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 107, 53, 0.12), rgba(74, 144, 226, 0.12));
+  box-shadow: var(--shadow-base);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 48px;
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+
+.hero-lede {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+  max-width: 540px;
+}
+
+.hero-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 360px;
+}
+
+.hero-kpis { display: grid; gap: 12px; }
+.hero-kpis li {
+  list-style: none;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-base);
+}
+
+.cta-group { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+
+.download-select { display: flex; flex-direction: column; gap: 8px; }
+.download-select label { font-size: 0.85rem; color: var(--text-muted); }
+.download-select select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: inherit;
+}
+
+/* Buttons */
+.button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 999px;
+  background: var(--button-primary);
+  color: var(--white);
+  text-decoration: none;
+  font-weight: 600;
+  transition: transform var(--transition-speed) ease, background var(--transition-speed) ease;
+}
+.button-primary:hover,
+.button-primary:focus,
+.button-primary:active,
+.button-primary:visited { color: var(--white); }
+.button-primary:hover { background: var(--button-primary-hover); transform: translateY(-1px); }
+
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  text-decoration: none;
+}
+
+/* Improve secondary button contrast in light mode */
+:root[data-theme="light"] .button-secondary { border-color: var(--gray-border-medium); }
+:root[data-theme="light"] .button-secondary:hover { border-color: var(--accent-color); }
+
+/* Gallery */
+.gallery { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.gallery figure { margin: 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: var(--shadow-base); }
+.gallery img { width: 100%; display: block; }
+
+/* Section headings & cards */
+.section-heading { display: flex; flex-direction: column; gap: 12px; max-width: 680px; }
+.section-heading span { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+.cards { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card { padding: 28px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--card-bg); box-shadow: var(--shadow-base); display: grid; gap: 20px; }
+.card h3 { margin: 0; font-size: 1.1rem; }
+.card ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+
+/* Small callout inline note */
+.release-note { border-left: 4px solid var(--button-primary); padding-left: 16px; }
+
+/* Footer */
+footer {
+  margin: 0 auto;
+  max-width: var(--content-max-width);
+  padding: 0 var(--content-padding) 80px;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 991px) {
+  main#content { padding-top: 48px; gap: 80px; }
+  .hero { padding: 32px; }
+  footer { padding-bottom: 60px; }
+}
+
+/* ==========================================
    BASE RESET & TYPOGRAPHY
    ========================================== */
 
@@ -348,7 +500,7 @@ ul.subnavlist-selected > li {
   width: var(--navbar-height);
   height: var(--navbar-height);
   margin-right: 20px;
-  background-image: url("/static/logo.png");
+  background-image: url('images/crypta_logo.png');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -809,83 +961,7 @@ div.dismiss-all-alerts-container {
   gap: 0.6em;
 }
 
-/* ==========================================
-   STATUS BAR & PROGRESS ELEMENTS
-   ========================================== */
-
-/* Status Bar Container */
-#statusbar-container {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 18;
-  color: var(--text-muted);
-}
-
-#statusbar {
-  text-align: center;
-}
-
-#statusbar > div {
-  display: inline-block;
-  font-size: 1em;
-  font-weight: bold;
-  vertical-align: bottom;
-}
-
-#statusbar div {
-  padding: 0;
-}
-
-#statusbar div.progressbar div {
-  font-size: 1em;
-}
-
-#statusbar div.progressbar {
-  float: none;
-  margin-bottom: 0;
-}
-
-#statusbar div.separator {
-  height: 1.5em;
-  width: 1px;
-  margin-right: 0.667em;
-  margin-left: 0.666em;
-}
-
-#statusbar div.infobox-header {
-  display: none;
-}
-
-/* Status Bar Styling */
-div#statusbar {
-  background-color: var(--bg-secondary);
-  border-top: 1px solid var(--status-bar-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-}
-
-div#statusbar div.progressbar {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-div#statusbar #statusbar-alerts,
-div#statusbar .infobox-content {
-  height: 100%;
-}
-
-#statusbar a {
-  font-size: var(--font-size-small);
-  line-height: 200%;
-}
-
-#statusbar #statusbar-seclevels {
-  font-size: var(--font-size-small);
-}
+/* STATUS BAR styles removed (unused on this site) */
 
 /* Progress Bar */
 div.progressbar {
@@ -1189,154 +1265,7 @@ table.directory-listing input {
   margin: 0;
 }
 
-/* ==========================================
-   BOOKMARKS SYSTEM
-   ========================================== */
-
-#bookmarks,
-#bookmarks ul {
-  padding: 0 1em;
-  list-style-type: none;
-}
-
-#bookmarks .actions {
-  margin-left: 0.5ex;
-  vertical-align: middle;
-  line-height: var(--line-height);
-}
-
-#bookmarks .actions a {
-  margin-left: 0.25em;
-}
-
-#bookmarks table {
-  width: 100%;
-}
-
-/* Grid Layout for Bookmarks */
-#bookmarks table tbody {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
-  padding: 0;
-  justify-content: start;
-}
-
-#bookmarks table tr {
-  display: block;
-  width: 100%;
-  min-width: 220px;
-  height: auto;
-  margin: 0;
-  padding: 20px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  transition: all var(--transition-speed) ease;
-  box-sizing: border-box;
-}
-
-/* Bookmark hover effect */
-#bookmarks table tr:hover {
-  border-color: var(--accent-color);
-  background: var(--bookmark-row-hover);
-}
-
-#bookmarks table td {
-  display: block;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  background: none;
-  text-align: center;
-}
-
-#bookmarks table td::after {
-  display: none;
-}
-
-#bookmarks table td:nth-child(1) {
-  margin-bottom: 12px;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-#bookmarks table td:nth-child(2) {
-  margin-bottom: 0;
-  font-size: var(--font-size-tiny);
-  font-weight: 400;
-  line-height: 1.4;
-  color: var(--desc-color);
-}
-
-#bookmarks table td:nth-child(2) a {
-  display: block;
-  margin-bottom: 4px;
-}
-
-#bookmarks table td:nth-child(2) a:first-child {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--navbar-bg);
-  text-decoration: none;
-  margin-bottom: 4px;
-}
-
-#bookmarks table td:nth-child(2) a:first-child:hover {
-  color: var(--accent-color);
-}
-
-#bookmarks table td a {
-  display: block;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  line-height: 1.3;
-  transition: color var(--transition-speed) ease;
-  text-decoration: none;
-  color: var(--navbar-bg);
-  text-align: center;
-}
-
-#bookmarks table td a:hover {
-  color: var(--accent-color);
-}
-
-#bookmarks td a img {
-  width: 108px !important;
-  height: 36px !important;
-  border-radius: var(--border-radius);
-  display: block;
-  object-fit: cover;
-  margin: 0 auto 12px auto;
-}
-
-/* Bookmark Category Styling */
-.bookmarks-box ul#bookmarks li.cat {
-  margin: 24px 0 16px 0;
-  margin-left: 4px !important;
-  padding: 0 0 0 2px;
-  font-style: normal;
-  font-size: var(--font-size-base);
-  font-weight: 700;
-  color: var(--bookmarks-box);
-  line-height: 1.4;
-  text-align: left;
-  background: none;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  text-shadow: none;
-  position: relative;
-  overflow: visible;
-  text-decoration: underline;
-}
-
-.bookmarks-box ul#bookmarks li.cat:before {
-  display: none;
-}
+/* Bookmarks system removed (unused) */
 
 /* ==========================================
    SEARCH & FORMS
