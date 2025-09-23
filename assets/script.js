@@ -560,10 +560,12 @@ const ThemeSwitcherModule = (() => {
       if (!hint) return;
       const os = clientInfo?.os || osFromUA();
       const archWarn = '<span class="arch-note">Note: automatic architecture detection can be wrong on some browsers. If this looks incorrect, pick the right build from the list.</span>';
+      const current = labelText || (select?.options?.[select.selectedIndex]?.textContent || '');
+      const prefix = current ? `<strong>Current selection:</strong> ${current}.` : '';
       if (os === 'linux') {
-        hint.innerHTML = `${labelText} selected. <span class="release-note">Linux desktops: Ubuntu → Snap; other distros → Flatpak. Linux servers: prefer native packages (.deb for Debian/Ubuntu, .rpm for Fedora/RHEL/openSUSE).</span> ${archWarn}`;
+        hint.innerHTML = `${prefix} <span class="release-note">Linux desktops: Ubuntu → Snap; other distros → Flatpak. Linux servers: prefer native packages (.deb for Debian/Ubuntu, .rpm for Fedora/RHEL/openSUSE).</span> ${archWarn}`.trim();
       } else {
-        hint.innerHTML = `${labelText} selected. ${archWarn}`;
+        hint.innerHTML = `${prefix} ${archWarn}`.trim();
       }
     };
 
