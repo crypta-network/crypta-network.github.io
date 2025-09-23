@@ -202,14 +202,18 @@ const ThemeSwitcherModule = (() => {
 
       try {
         mql = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-        if (mql && typeof mql.addEventListener === 'function') mql.addEventListener('change', () => setTimeout(applyScreenshot, 0));
-        else if (mql && typeof mql.addListener === 'function') mql.addListener(() => setTimeout(applyScreenshot, 0));
+        if (mql && typeof mql.addEventListener === 'function') {
+          mql.addEventListener('change', () => setTimeout(applyScreenshot, 0));
+        } else if (mql && 'onchange' in mql) {
+          mql.onchange = () => setTimeout(applyScreenshot, 0);
+        }
       } catch {}
     };
 
     const destroy = () => {
       try { mo?.disconnect(); } catch {}
       if (mql && typeof mql.removeEventListener === 'function') mql.removeEventListener('change', applyScreenshot);
+      else if (mql && 'onchange' in mql) mql.onchange = null;
     };
     return { init, destroy };
   })();
@@ -236,7 +240,6 @@ const ThemeSwitcherModule = (() => {
     };
 
     const ua = navigator.userAgent.toLowerCase();
-    const platform = (navigator.platform || '').toLowerCase();
     let clientInfo = { os: 'unknown', arch: null, bitness: null };
 
     const EXT_PRIORITIES = {
@@ -256,7 +259,7 @@ const ThemeSwitcherModule = (() => {
 
     const osFromUA = () => {
       if (/windows/.test(ua)) return 'win';
-      if (/mac|darwin/.test(ua) || platform.startsWith('mac')) return 'mac';
+      if (/mac|darwin/.test(ua)) return 'mac';
       if (/linux|x11/.test(ua)) return 'linux';
       return 'unknown';
     };
@@ -278,10 +281,13 @@ const ThemeSwitcherModule = (() => {
         else if (arch === 'arm' && bits === '32') archNorm = 'armv7';
         else if (arch === 'x86' && bits === '64') archNorm = 'x86_64';
         else if (arch === 'x86' && bits === '32') archNorm = 'i386';
+        let osNorm = osFromUA();
+        const platformLower = (hints.platform || '').toLowerCase();
+        if (platformLower.includes('win')) osNorm = 'win';
+        else if (platformLower.includes('mac')) osNorm = 'mac';
+        else if (platformLower.includes('linux')) osNorm = 'linux';
         return {
-          os: (hints.platform || '').toLowerCase().includes('win') ? 'win'
-                : (hints.platform || '').toLowerCase().includes('mac') ? 'mac'
-                : (hints.platform || '').toLowerCase().includes('linux') ? 'linux' : osFromUA(),
+          os: osNorm,
           arch: archNorm,
           bitness: bits || null
         };
@@ -357,13 +363,25 @@ const ThemeSwitcherModule = (() => {
       const ext = extOf(name);
       const baseOS = osFromExt(ext) || osFromName(name) || '';
       const arch = archFromName(name);
-      const extNote = ext ? (ext === '.tar.gz' ? '(.tar.gz)' : `(${ext})`) : '';
+      let extNote = '';
+      if (ext) {
+        extNote = (ext === '.tar.gz') ? '(.tar.gz)' : `(${ext})`;
+      }
 
-      const archLabel = arch === 'x86_64' ? (baseOS === 'Windows' ? 'x64' : 'x86_64')
-                       : arch === 'arm64' ? 'ARM64'
-                       : arch === 'i386' ? 'x86'
-                       : arch === 'universal' ? 'universal'
-                       : arch || null;
+      let archLabel = null;
+      if (arch === 'x86_64') {
+        archLabel = baseOS === 'Windows' ? 'x64' : 'x86_64';
+      } else if (arch === 'arm64') {
+        archLabel = 'ARM64';
+      } else if (arch === 'i386') {
+        archLabel = 'x86';
+      } else if (arch === 'universal') {
+        archLabel = 'universal';
+      } else if (arch) {
+        archLabel = arch;
+      } else {
+        archLabel = null;
+      }
 
       if (ext === '.jar') return 'Universal (JAR)';
       if (baseOS === 'Snap')
