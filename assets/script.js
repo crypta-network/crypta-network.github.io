@@ -186,33 +186,39 @@ const ThemeSwitcherModule = (() => {
       img.setAttribute('alt', dark ? 'Crypta UI in dark mode' : 'Crypta UI in light mode');
     };
 
+    // Hoisted handlers to reduce nesting depth
+    const onThemeMutation = (muts) => {
+      if (muts.some(m => m.attributeName === 'data-theme')) applyScreenshot();
+    };
+    const onToggleClick = (e) => {
+      if (e.target && (e.target.classList?.contains('theme-toggle') || e.target.closest?.('.theme-toggle'))) {
+        setTimeout(applyScreenshot, 0);
+      }
+    };
+    const onMediaChange = () => setTimeout(applyScreenshot, 0);
+
     const init = () => {
       img = document.getElementById('screenshot');
       applyScreenshot();
-      mo = new MutationObserver((muts) => {
-        if (muts.some(m => m.attributeName === 'data-theme')) applyScreenshot();
-      });
+      mo = new MutationObserver(onThemeMutation);
       mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-      document.addEventListener('click', (e) => {
-        if (e.target && (e.target.classList?.contains('theme-toggle') || e.target.closest?.('.theme-toggle'))) {
-          setTimeout(applyScreenshot, 0);
-        }
-      });
+      document.addEventListener('click', onToggleClick);
 
       try {
         mql = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
         if (mql && typeof mql.addEventListener === 'function') {
-          mql.addEventListener('change', () => setTimeout(applyScreenshot, 0));
+          mql.addEventListener('change', onMediaChange);
         } else if (mql && 'onchange' in mql) {
-          mql.onchange = () => setTimeout(applyScreenshot, 0);
+          mql.onchange = onMediaChange;
         }
       } catch {}
     };
 
     const destroy = () => {
       try { mo?.disconnect(); } catch {}
-      if (mql && typeof mql.removeEventListener === 'function') mql.removeEventListener('change', applyScreenshot);
+      document.removeEventListener('click', onToggleClick);
+      if (mql && typeof mql.removeEventListener === 'function') mql.removeEventListener('change', onMediaChange);
       else if (mql && 'onchange' in mql) mql.onchange = null;
     };
     return { init, destroy };
