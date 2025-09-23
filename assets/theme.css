@@ -1955,6 +1955,8 @@ a.bookmark-title-updated:hover {
 }
 
 /* Icons for theme toggle */
+/* Default (in case JS hasn't set data-icon yet) */
+.theme-toggle .theme-toggle-icon::before { content: "☾"; }
 /* Show sun icon when current theme is dark (to switch to light) */
 .theme-toggle[data-icon="light"] .theme-toggle-icon::before {
   content: "☀";
