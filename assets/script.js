@@ -301,10 +301,23 @@ const ThemeSwitcherModule = (() => {
       }
     };
 
+    // Fallback for browsers without UA-CH (e.g., Firefox): infer arch from UA string
+    const archFromUAString = () => {
+      const s = ua;
+      if (/aarch64|arm64/.test(s)) return 'arm64';
+      if (/armv7l|armv7|armhf/.test(s)) return 'armv7';
+      if (/x86_64|amd64|x64/.test(s)) return 'x86_64';
+      if (/i686|i386|x86/.test(s)) return 'i386';
+      return null;
+    };
+
     const detectClient = async () => {
       const os = osFromUA();
       const ch = await detectViaUAClientHints();
-      clientInfo = ch ?? { os, arch: null, bitness: null };
+      // Merge UA-CH info with UA-derived architecture as fallback (helps Firefox)
+      const uaArch = archFromUAString();
+      clientInfo = ch ?? { os, arch: uaArch, bitness: null };
+      if (clientInfo && !clientInfo.arch) clientInfo.arch = uaArch;
       return clientInfo;
     };
 
