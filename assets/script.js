@@ -409,8 +409,18 @@ const ThemeSwitcherModule = (() => {
       if (os === 'win') return EXT_PRIORITIES.win;
       if (os === 'mac') return EXT_PRIORITIES.mac;
       if (os === 'linux') {
-        if (distro === 'deb') return ['.deb', ...EXT_PRIORITIES.nix, ...EXT_PRIORITIES.any];
-        if (distro === 'rpm') return ['.rpm', ...EXT_PRIORITIES.nix, ...EXT_PRIORITIES.any];
+        const isUbuntu = /ubuntu/.test(ua);
+        if (isUbuntu) {
+          // Ubuntu desktop default: prefer Snap first
+          return ['.snap', '.flatpak', '.flatpakref', '.appimage', '.tar.gz', '.zip', '.deb'];
+        }
+        if (distro === 'deb') {
+          // Other deb-based distros: prefer Flatpak as a safe desktop default, then Snap, then native
+          return ['.flatpak', '.flatpakref', '.snap', '.appimage', '.tar.gz', '.zip', '.deb'];
+        }
+        if (distro === 'rpm') {
+          return ['.flatpak', '.flatpakref', '.snap', '.appimage', '.tar.gz', '.zip', '.rpm'];
+        }
         return [...EXT_PRIORITIES.nix, ...EXT_PRIORITIES.any];
       }
       return EXT_PRIORITIES.any;
@@ -421,11 +431,11 @@ const ThemeSwitcherModule = (() => {
       return idx === -1 ? 999 : idx;
     };
 
-    const arm64RankForWindows = (info, name) => {
-      if (info?.arch !== 'arm64') return 0;
+    const archPenalty = (info, name) => {
+      if (!info?.arch) return 0;
       const arch = archFromName(name);
-      if (arch === 'arm64') return 0; // best
-      return 1; // deprioritize non‑ARM on ARM devices
+      // If asset architecture is known and mismatches, penalize
+      return arch && arch !== info.arch ? 1 : 0;
     };
 
     const chooseBest = (assets, info) => {
@@ -443,9 +453,10 @@ const ThemeSwitcherModule = (() => {
           const ea = extIndex(order, a.name);
           const eb = extIndex(order, b.name);
           if (ea !== eb) return ea - eb;
-          if (os === 'win') {
-            return arm64RankForWindows(info, a.name) - arm64RankForWindows(info, b.name);
-          }
+          // On ties, prefer matching architecture when known (covers Windows ARM64 and Linux arm64)
+          const pa = archPenalty(info, a.name);
+          const pb = archPenalty(info, b.name);
+          if (pa !== pb) return pa - pb;
           return 0;
         });
         return candidates[0];
