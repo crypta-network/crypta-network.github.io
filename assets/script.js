@@ -577,7 +577,7 @@ const ThemeSwitcherModule = (() => {
 
       select.addEventListener('change', (e) => {
         const url = e.target.value;
-        const selText = (e.target.options[e.target.selectedIndex] || {}).textContent || labelFor(url);
+        const selText = e.target?.options?.[e.target.selectedIndex]?.textContent ?? labelFor(url);
         button.href = url;
         button.target = '_blank';
         button.rel = 'noopener noreferrer';
