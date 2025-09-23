@@ -68,7 +68,7 @@ const LogoModule = (() => {
   const init = () => {
     const navbar = document.getElementById('navbar');
     if (!navbar) return;
-    const href = (document.querySelector('#navlist li a[href]') || {}).href || '/';
+    const href = document.querySelector('#navlist li a[href]')?.href || '/';
     logo = document.createElement('a');
     logo.className = 'logo-link';
     logo.href = href;
@@ -142,11 +142,22 @@ const ThemeSwitcherModule = (() => {
     if (navlist.nextSibling) navbar.insertBefore(btn, navlist.nextSibling); else navbar.appendChild(btn);
     if (window.matchMedia) {
       mql = window.matchMedia('(prefers-color-scheme: dark)');
-      (mql.addEventListener ? mql.addEventListener('change', apply) : mql.addListener(apply));
+      if (typeof mql.addEventListener === 'function') {
+        mql.addEventListener('change', apply);
+      } else {
+        // Fallback without using deprecated addListener
+        mql.onchange = apply;
+      }
     }
   };
   const destroy = () => {
-    if (mql) (mql.removeEventListener ? mql.removeEventListener('change', apply) : mql.removeListener(apply));
+    if (mql) {
+      if (typeof mql.removeEventListener === 'function') {
+        mql.removeEventListener('change', apply);
+      } else if ('onchange' in mql) {
+        mql.onchange = null;
+      }
+    }
     btn?.remove();
   };
   return { init, destroy };
