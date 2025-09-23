@@ -405,7 +405,7 @@ const ThemeSwitcherModule = (() => {
 
     const isChecksum = (name) => {
       const n = fileBase(name).toLowerCase();
-      return /sha256sum/.test(n) || /sha256sums\.txt$/.test(n) || /checksums?/.test(n);
+      return n.includes('sha256sum') || n.endsWith('sha256sums.txt') || n.includes('checksum');
     };
 
     const chooseBest = (assets, info) => {
