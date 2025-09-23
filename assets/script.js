@@ -277,7 +277,6 @@ const ThemeSwitcherModule = (() => {
         const hints = await navigator.userAgentData.getHighEntropyValues([
           'architecture',
           'bitness',
-          'platform',
           'platformVersion'
         ]);
         const arch = (hints.architecture || '').toLowerCase();
@@ -288,7 +287,7 @@ const ThemeSwitcherModule = (() => {
         else if (arch === 'x86' && bits === '64') archNorm = 'x86_64';
         else if (arch === 'x86' && bits === '32') archNorm = 'i386';
         let osNorm = osFromUA();
-        const platformLower = (hints.platform || '').toLowerCase();
+        const platformLower = (navigator.userAgentData?.platform || '').toLowerCase();
         if (platformLower.includes('win')) osNorm = 'win';
         else if (platformLower.includes('mac')) osNorm = 'mac';
         else if (platformLower.includes('linux')) osNorm = 'linux';
