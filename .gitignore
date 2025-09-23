@@ -5,8 +5,4 @@
 # Temporary notes (never commit)
 tmp_changes.md
 
-# Assets that may be rebuilt/regenerated locally
-# (tracked now, but future local edits won’t auto-stage)
-assets/script.js
-assets/theme.css
-
+# (keep theme and script tracked)
