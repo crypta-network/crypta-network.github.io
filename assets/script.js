@@ -237,6 +237,7 @@ const ThemeSwitcherModule = (() => {
 
     const ua = navigator.userAgent.toLowerCase();
     const platform = (navigator.platform || '').toLowerCase();
+    let clientInfo = { os: 'unknown', arch: null, bitness: null };
 
     const EXT_PRIORITIES = {
       mac: ['.dmg', '.pkg', '.zip'],
@@ -258,6 +259,42 @@ const ThemeSwitcherModule = (() => {
       if (/mac|darwin/.test(ua) || platform.startsWith('mac')) return 'mac';
       if (/linux|x11/.test(ua)) return 'linux';
       return 'unknown';
+    };
+
+    // UA-CH detection for architecture/bitness where supported (Chromium / Edge)
+    const detectViaUAClientHints = async () => {
+      try {
+        if (!navigator.userAgentData || typeof navigator.userAgentData.getHighEntropyValues !== 'function') return null;
+        const hints = await navigator.userAgentData.getHighEntropyValues([
+          'architecture',
+          'bitness',
+          'platform',
+          'platformVersion'
+        ]);
+        const arch = (hints.architecture || '').toLowerCase();
+        const bits = (hints.bitness || '').toLowerCase();
+        let archNorm = null;
+        if (arch === 'arm' && bits === '64') archNorm = 'arm64';
+        else if (arch === 'arm' && bits === '32') archNorm = 'armv7';
+        else if (arch === 'x86' && bits === '64') archNorm = 'x86_64';
+        else if (arch === 'x86' && bits === '32') archNorm = 'i386';
+        return {
+          os: (hints.platform || '').toLowerCase().includes('win') ? 'win'
+                : (hints.platform || '').toLowerCase().includes('mac') ? 'mac'
+                : (hints.platform || '').toLowerCase().includes('linux') ? 'linux' : osFromUA(),
+          arch: archNorm,
+          bitness: bits || null
+        };
+      } catch {
+        return null;
+      }
+    };
+
+    const detectClient = async () => {
+      const os = osFromUA();
+      const ch = await detectViaUAClientHints();
+      clientInfo = ch ? ch : { os, arch: null, bitness: null };
+      return clientInfo;
     };
 
     const fileBase = (input) => {
@@ -353,13 +390,20 @@ const ThemeSwitcherModule = (() => {
       return /sha256sum/.test(n) || /sha256sums\.txt$/.test(n) || /checksums?/.test(n);
     };
 
-    const chooseBest = (assets) => {
+    const chooseBest = (assets, info) => {
       const pool = assets.filter(a => !isChecksum(a.name));
-      const os = osFromUA();
+      const os = info?.os || osFromUA();
       const distro = distroFromUA();
       if (os === 'win') {
+        // Prefer native ARM64 if the browser reports ARM64
+        if (info?.arch === 'arm64') {
+          const armCand = pool.find(a => (extOf(a.name) === '.exe' || extOf(a.name) === '.msi') && archFromName(a.name) === 'arm64');
+          if (armCand) return armCand;
+        }
         for (const ext of EXT_PRIORITIES.win) {
-          const match = pool.find(a => extOf(a.name) === ext);
+          // If we know we're on ARM64, try to avoid x86-only unless no choice
+          const match = pool.find(a => extOf(a.name) === ext && (info?.arch !== 'arm64' || archFromName(a.name) !== 'x86_64'))
+                    || pool.find(a => extOf(a.name) === ext);
           if (match) return match;
         }
       } else if (os === 'mac') {
@@ -497,15 +541,21 @@ const ThemeSwitcherModule = (() => {
       setExternalTargets();
       if (!select || !button) return;
 
-      fetch(API, { headers: { 'Accept': 'application/vnd.github+json' } })
+      const assetsPromise = fetch(API, { headers: { 'Accept': 'application/vnd.github+json' } })
         .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
-        .then(data => {
-          const assets = Array.isArray(data.assets) ? data.assets : [];
-          if (!assets.length) return fallback();
-          populateSelect(assets);
-          applyChoice(chooseBest(assets));
-        })
-        .catch(() => fallback());
+        .then(data => (Array.isArray(data.assets) ? data.assets : []));
+
+      const infoPromise = detectClient();
+
+      Promise.allSettled([assetsPromise, infoPromise]).then(results => {
+        const assetsRes = results[0];
+        const infoRes = results[1];
+        const assets = assetsRes.status === 'fulfilled' ? assetsRes.value : [];
+        const info = infoRes.status === 'fulfilled' ? infoRes.value : clientInfo;
+        if (!assets.length) return fallback();
+        populateSelect(assets);
+        applyChoice(chooseBest(assets, info));
+      }).catch(() => fallback());
 
       select.addEventListener('change', (e) => {
         const url = e.target.value;
