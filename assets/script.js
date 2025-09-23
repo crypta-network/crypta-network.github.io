@@ -556,6 +556,17 @@ const ThemeSwitcherModule = (() => {
       });
     };
 
+    const setHint = (labelText) => {
+      if (!hint) return;
+      const os = clientInfo?.os || osFromUA();
+      const archWarn = '<span class="arch-note">Note: automatic architecture detection can be wrong on some browsers. If this looks incorrect, pick the right build from the list.</span>';
+      if (os === 'linux') {
+        hint.innerHTML = `${labelText} selected. <span class="release-note">Linux desktops: Ubuntu → Snap; other distros → Flatpak. Linux servers: prefer native packages (.deb for Debian/Ubuntu, .rpm for Fedora/RHEL/openSUSE).</span> ${archWarn}`;
+      } else {
+        hint.innerHTML = `${labelText} selected. ${archWarn}`;
+      }
+    };
+
     const applyChoice = (asset) => {
       if (!asset) return;
       button.href = asset.browser_download_url;
@@ -563,14 +574,7 @@ const ThemeSwitcherModule = (() => {
       button.rel = 'noopener noreferrer';
       const fullLabel = labelFor(asset.name);
       button.textContent = `Download ${fullLabel}`;
-      if (hint) {
-        const os = osFromUA();
-        if (os === 'linux') {
-          hint.innerHTML = `${fullLabel} selected. <span class="release-note">Linux desktops: Ubuntu → Snap; other distros → Flatpak. Linux servers: prefer native packages (.deb for Debian/Ubuntu, .rpm for Fedora/RHEL/openSUSE).</span>`;
-        } else {
-          hint.textContent = `${fullLabel} selected.`;
-        }
-      }
+      setHint(fullLabel);
       select.value = asset.browser_download_url;
       setExternalTargets();
     };
@@ -615,6 +619,7 @@ const ThemeSwitcherModule = (() => {
         button.target = '_blank';
         button.rel = 'noopener noreferrer';
         button.textContent = `Download ${selText}`;
+        setHint(selText);
         setExternalTargets();
       });
     };
