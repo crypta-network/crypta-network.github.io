@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Crypta · Privacy‑First Decentralized App Platform</title>
+  <meta name="description" content="Crypta is a privacy‑first, decentralized datastore and app platform — a modern fork of Hyphanet/Freenet for censorship‑resistant publishing and communication."/>
+  <script>
+    // Boot theme early to avoid white flash on load
+    try {
+      let current_theme = 'light';
+      const m = localStorage.getItem('theme-mode'); // 'light' | 'dark' | 'auto' | null
+      const d = document.documentElement;
+
+      if (m === null || m === 'auto') {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          current_theme = 'dark';
+        }
+      } else {
+        current_theme = m;
+      }
+
+      if (current_theme === 'dark') {
+        d.setAttribute('data-theme', 'dark');
+        d.style.colorScheme = 'dark';
+      } else {
+        d.setAttribute('data-theme', 'light');
+        d.style.colorScheme = 'light';
+      }
+    } catch {}
+  </script>
+  <link rel="stylesheet" href="assets/theme.css">
+  <link rel="icon" type="image/png" href="assets/images/crypta_logo.png">
+  <style>
+    .logo-link {
+      background-image: url('assets/images/crypta_logo.png');
+      border-radius: 4px;
+      background-color: transparent;
+    }
+
+    /* Ensure navbar is flush to the top even if theme defaults differ */
+    #navbar { top: 0; }
+
+    body {
+      background: var(--bg-primary);
+    }
+
+    main#content {
+      max-width: var(--content-max-width);
+      margin: 0 auto;
+      padding: 80px var(--content-padding) 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 120px;
+    }
+
+    section {
+      display: grid;
+      gap: 32px;
+    }
+
+    .hero {
+      position: relative;
+      padding: 48px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(255, 107, 53, 0.12), rgba(74, 144, 226, 0.12));
+      box-shadow: var(--shadow-base);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 48px;
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .hero-lede {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      max-width: 540px;
+    }
+
+    .hero-cta {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 360px;
+    }
+
+    .hero-kpis {
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero-kpis li {
+      list-style: none;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-base);
+    }
+
+    .cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .download-select {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .download-select label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .download-select select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      color: inherit;
+    }
+
+    .button-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 24px;
+      border-radius: 999px;
+      background: var(--button-primary);
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 600;
+      transition: transform var(--transition-speed) ease, background var(--transition-speed) ease;
+    }
+
+    .button-primary:hover,
+    .button-primary:focus,
+    .button-primary:active,
+    .button-primary:visited {
+      color: var(--white);
+    }
+
+    .button-primary:hover {
+      background: var(--button-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .button-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+      text-decoration: none;
+    }
+
+    /* Improve secondary button contrast in light mode */
+    :root[data-theme="light"] .button-secondary {
+      border-color: var(--gray-border-medium); /* #ccc for better visibility */
+    }
+
+    :root[data-theme="light"] .button-secondary:hover {
+      border-color: var(--accent-color);
+    }
+
+    .gallery {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .gallery figure {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      box-shadow: var(--shadow-base);
+    }
+
+    .gallery img {
+      width: 100%;
+      display: block;
+    }
+
+    .section-heading {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 680px;
+    }
+
+    .section-heading span {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .cards {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .card {
+      padding: 28px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      box-shadow: var(--shadow-base);
+      display: grid;
+      gap: 20px;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .card ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .release-note {
+      border-left: 4px solid var(--button-primary);
+      padding-left: 16px;
+    }
+
+    .step-list {
+      display: grid;
+      gap: 16px;
+      counter-reset: steps;
+    }
+
+    .step {
+      position: relative;
+      padding: 20px 20px 20px 56px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      box-shadow: var(--shadow-base);
+    }
+
+    .step::before {
+      counter-increment: steps;
+      content: counter(steps);
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--button-primary);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    footer {
+      margin: 0 auto;
+      max-width: var(--content-max-width);
+      padding: 0 var(--content-padding) 80px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    @media (max-width: 991px) {
+      main#content {
+        padding-top: 48px;
+        gap: 80px;
+      }
+
+      .hero {
+        padding: 32px;
+      }
+
+      footer {
+        padding-bottom: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="page">
+    <header id="navbar">
+      <ul id="navlist">
+        <li class="navlist-selected"><a href="#overview">Overview</a></li>
+        <li class="navlist-not-selected"><a href="#vision">Vision</a></li>
+        <li class="navlist-not-selected"><a href="#quick-start">Quick Start</a></li>
+        <li class="navlist-not-selected"><a href="#build">Build</a></li>
+        <li class="navlist-not-selected"><a href="#license">License</a></li>
+      </ul>
+    </header>
+
+    <main id="content">
+      <section class="hero" id="overview">
+        <div>
+          <h1>Privacy‑first, decentralized datastore and app platform.</h1>
+          <p class="hero-lede">Crypta is a modern fork of Hyphanet/Freenet that provides a peer‑to‑peer, encrypted, censorship‑resistant datastore on top of which forums, chats, micro‑blogs, and websites can run without central servers.</p>
+          <div class="hero-cta">
+            <div class="cta-group">
+              <a id="download-button" class="button-primary" href="https://github.com/crypta-network/cryptad/releases/latest" rel="noopener">Download</a>
+              <a class="button-secondary" href="https://github.com/crypta-network/cryptad" rel="noopener">View on GitHub</a>
+            </div>
+            <div class="download-select">
+              <label for="download-package">Prefer a different build?</label>
+              <select id="download-package"></select>
+              <small id="download-hint">Detecting the best package…</small>
+            </div>
+          </div>
+        </div>
+        <div>
+          <ul class="hero-kpis">
+            <li><strong>User experience first</strong><br>Modern web UI, sensible defaults, and guided onboarding.</li>
+            <li><strong>Faster routing</strong><br>Locality‑aware routing, popularity‑sensitive caching, QUIC/HTTP‑3, better NAT traversal.</li>
+            <li><strong>Safe observability</strong><br>Privacy‑preserving telemetry and reproducible benchmarks for tuning.</li>
+          </ul>
+        </div>
+      </section>
+      <section id="vision">
+        <div class="section-heading">
+          <span>Vision</span>
+          <h2>Keep privacy and resilience — make it fast and pleasant.</h2>
+          <p>Crypta preserves Hyphanet/Freenet’s privacy model while modernizing usability, performance, and the developer experience.</p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>User experience first</h3>
+            <ul>
+              <li>Modern web UI and sensible defaults.</li>
+              <li>One‑click guided onboarding (smart opennet bootstrap).</li>
+              <li>Optional darknet linking later.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Faster routing & retrieval</h3>
+            <ul>
+              <li>Adaptive, locality‑aware routing.</li>
+              <li>Popularity‑sensitive caching and opportunistic prefetch.</li>
+              <li>QUIC/HTTP‑3, improved congestion control, better NAT traversal.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>A better platform</h3>
+            <ul>
+              <li>Kotlin‑first codebase and stable plugin SDK.</li>
+              <li>Typed configuration and testable interfaces.</li>
+              <li>Privacy‑preserving observability and benchmarking.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="gallery">
+          <figure>
+            <img id="screenshot" src="assets/images/screenshot_light.png" alt="Crypta UI in light mode">
+          </figure>
+        </div>
+      </section>
+
+      <section id="quick-start">
+        <div class="section-heading">
+          <span>Quick Start</span>
+          <h2>Install via packages, or run the portable launcher.</h2>
+          <p>Packages are available for Windows, macOS, and Linux. The launcher starts the daemon and opens the UI on first start.</p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>Windows</h3>
+            <ul>
+              <li>Download the <strong>.exe</strong> from Releases and run it.</li>
+              <li>If SmartScreen warns, choose “More info” → “Run anyway”.</li>
+              <li>Launch “Crypta” from the Start Menu.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>macOS</h3>
+            <ul>
+              <li>Download the <strong>.dmg</strong>, drag “Crypta.app” to Applications.</li>
+              <li>If Gatekeeper blocks, right‑click → Open (or allow in Settings).</li>
+              <li>Launch from Applications/Launchpad.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Linux</h3>
+            <p><strong>Desktops:</strong> Ubuntu → Snap; other distros → Flatpak. <strong>Servers:</strong> prefer native packages (.deb for Debian/Ubuntu; .rpm for Fedora/RHEL/openSUSE).</p>
+            <details>
+              <summary>Server install examples</summary>
+              <ul>
+                <li>Debian/Ubuntu: <code>sudo apt install ./Crypta-<em>version</em>_amd64.deb</code></li>
+                <li>Fedora/RHEL/openSUSE: <code>sudo dnf install ./Crypta-<em>version</em>.x86_64.rpm</code></li>
+                <li>Start service: <code>sudo systemctl start cryptad</code></li>
+              </ul>
+            </details>
+          </article>
+          <article class="card">
+            <h3>Portable (developers)</h3>
+            <ul>
+              <li><code>./gradlew assembleCryptadDist</code></li>
+              <li>Run <code>build/cryptad-dist/bin/cryptad-launcher</code> (Windows: <code>*.bat</code>).</li>
+              <li>Opens <code>http://localhost:&lt;port&gt;/</code> on first successful start.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="build">
+        <div class="section-heading">
+          <span>Build</span>
+          <h2>Build with Gradle; Java 21+, Kotlin 2.2+.</h2>
+          <p>Use the included Gradle Wrapper. If you trust the committed wrapper, you can build immediately.</p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>Compile & test</h3>
+            <ul>
+              <li><code>./gradlew buildJar</code> — builds the node JAR.</li>
+              <li><code>./gradlew --parallel test</code> — run tests in parallel.</li>
+              <li><code>./gradlew assembleCryptadDist</code> — assemble portable dist.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>JLink & installers</h3>
+            <ul>
+              <li><code>./gradlew distJlinkCryptad</code> — create a minimal runtime image.</li>
+              <li><code>./gradlew build</code> — builds app image; native installers when tooling present (DMG/DEB/RPM).</li>
+              <li>See README for details on update system and packaging.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="cta-group">
+          <a class="button-secondary" href="https://github.com/crypta-network/cryptad/releases/latest" rel="noopener">Latest release</a>
+          <a class="button-secondary" href="https://github.com/crypta-network/cryptad/blob/main/README.md" rel="noopener">Documentation</a>
+        </div>
+      </section>
+
+      <section id="license">
+        <div class="section-heading">
+          <span>License</span>
+          <h2>GPLv3 — Free software you can study and improve.</h2>
+          <p>Crypta is free software licensed under the GNU General Public License, version 3 only. Some bundled components may use permissive licenses (e.g., Apache‑2.0, BSD‑3‑Clause) that are compatible with GPLv3 and are included under their respective terms.</p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>Core terms (summary)</h3>
+            <ul>
+              <li>If you distribute binaries, you must also provide the corresponding source (or a written offer).</li>
+              <li>Preserve license notices and provide a copy of the GPLv3 with your distribution.</li>
+              <li>Modifications must also be GPLv3 when distributed.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Read the license</h3>
+            <p>For the full legal text, see the project’s LICENSE file.</p>
+            <div class="cta-group">
+              <a class="button-secondary" href="https://github.com/crypta-network/cryptad/blob/main/LICENSE" rel="noopener">View LICENSE on GitHub</a>
+              <a class="button-secondary" href="https://www.gnu.org/licenses/gpl-3.0" rel="noopener">GPLv3 at gnu.org</a>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>© <span id="footer-year"></span> Crypta Network.</span>
+      <span id="license-summary">GPLv3 • Java 21+ • Kotlin 2.2+ • Gradle</span>
+    </footer>
+  </div>
+
+  <script src="assets/script.js"></script>
+  <script>
+    (function () {
+      // Keep screenshot in sync with theme using one <img>
+      const LIGHT_SRC = 'assets/images/screenshot_light.png';
+      const DARK_SRC = 'assets/images/screenshot_dark.png';
+      const img = document.getElementById('screenshot');
+      const applyScreenshot = () => {
+        if (!img) return;
+        const theme = document.documentElement.getAttribute('data-theme') || 'light';
+        const dark = theme === 'dark';
+        const next = dark ? DARK_SRC : LIGHT_SRC;
+        if (img.getAttribute('src') !== next) {
+          img.setAttribute('src', next);
+        }
+        img.setAttribute('alt', dark ? 'Crypta UI in dark mode' : 'Crypta UI in light mode');
+      };
+      applyScreenshot();
+      // Observe attribute changes on <html data-theme>
+      const mo = new MutationObserver((muts) => {
+        if (muts.some(m => m.attributeName === 'data-theme')) applyScreenshot();
+      });
+      mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+      // Also hook the theme toggle button, if present
+      document.addEventListener('click', (e) => {
+        if (e.target && (e.target.classList?.contains('theme-toggle') || e.target.closest?.('.theme-toggle'))) {
+          // allow ThemeSwitcher to apply first
+          setTimeout(applyScreenshot, 0);
+        }
+      });
+
+      // React to OS theme changes when in auto mode
+      try {
+        const mql = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+        if (mql && mql.addEventListener) mql.addEventListener('change', () => setTimeout(applyScreenshot, 0));
+        else if (mql && mql.addListener) mql.addListener(() => setTimeout(applyScreenshot, 0));
+      } catch {}
+
+      // Make external links open in a new tab
+      const setExternalTargets = () => {
+        const anchors = document.querySelectorAll('a[href^="http"]');
+        anchors.forEach(a => {
+          try {
+            const url = new URL(a.href, location.href);
+            if (url.origin !== location.origin) {
+              a.target = '_blank';
+              // preserve existing rel while ensuring security flags
+              const rel = (a.getAttribute('rel') || '').split(/\s+/).filter(Boolean);
+              if (!rel.includes('noopener')) rel.push('noopener');
+              if (!rel.includes('noreferrer')) rel.push('noreferrer');
+              a.setAttribute('rel', rel.join(' '));
+            }
+          } catch {}
+        });
+      };
+      // Run once now; run again after dynamic updates below
+      setExternalTargets();
+      const API = 'https://api.github.com/repos/crypta-network/cryptad/releases/latest';
+      const select = document.getElementById('download-package');
+      const button = document.getElementById('download-button');
+      const hint = document.getElementById('download-hint');
+
+      const ua = navigator.userAgent.toLowerCase();
+      const platform = (navigator.platform || '').toLowerCase();
+
+      const EXT_PRIORITIES = {
+        mac: ['.dmg', '.pkg', '.zip'],
+        win: ['.exe', '.msi', '.zip'],
+        deb: ['.deb'],
+        rpm: ['.rpm'],
+        nix: ['.flatpak', '.flatpakref', '.snap', '.appimage', '.tar.gz', '.zip'],
+        any: ['.zip', '.tar.gz']
+      };
+
+      const distroFromUA = () => {
+        if (/ubuntu|debian|mint|elementary|pop_os/.test(ua)) return 'deb';
+        if (/fedora|rhel|centos|rocky|alma|suse|opensuse/.test(ua)) return 'rpm';
+        return null;
+      };
+
+      const osFromUA = () => {
+        if (/windows/.test(ua)) return 'win';
+        if (/mac|darwin/.test(ua) || platform.startsWith('mac')) return 'mac';
+        if (/linux|x11/.test(ua)) return 'linux';
+        return 'unknown';
+      };
+
+      const fileBase = (input) => {
+        try {
+          const s = String(input || '');
+          const q = s.split('?')[0];
+          const h = q.split('#')[0];
+          const base = h.substring(h.lastIndexOf('/') + 1);
+          return decodeURIComponent(base);
+        } catch { return String(input || ''); }
+      };
+
+      const extOf = (name) => {
+        const base = fileBase(name).toLowerCase();
+        if (base.endsWith('.tar.gz')) return '.tar.gz';
+        const m = base.match(/(\.[a-z0-9]+)$/i);
+        return m ? m[1] : '';
+      };
+
+      const ARCH_TOKENS = [
+        ['x86_64', 'x86_64'], ['amd64', 'x86_64'], ['x64', 'x86_64'],
+        ['aarch64', 'arm64'], ['arm64', 'arm64'],
+        ['armv7hl', 'armv7'], ['armv7', 'armv7'], ['armhf', 'armhf'],
+        ['i386', 'i386'], ['i686', 'i386'], ['x86', 'i386'],
+        ['ppc64le', 'ppc64le'], ['s390x', 's390x'],
+        ['universal', 'universal'], ['noarch', 'universal'], ['all', 'universal']
+      ];
+
+      const archFromName = (name) => {
+        const n = fileBase(name).toLowerCase();
+        for (const [needle, norm] of ARCH_TOKENS) {
+          if (n.includes(needle)) return norm;
+        }
+        return null;
+      };
+
+      const osFromExt = (ext) => {
+        if (ext === '.dmg' || ext === '.pkg') return 'macOS';
+        if (ext === '.exe' || ext === '.msi') return 'Windows';
+        if (ext === '.deb') return 'Debian/Ubuntu';
+        if (ext === '.rpm') return 'Fedora/RHEL/openSUSE';
+        if (ext === '.snap') return 'Snap';
+        if (ext === '.flatpak' || ext === '.flatpakref') return 'Flatpak';
+        if (ext === '.appimage' || ext === '.AppImage') return 'AppImage';
+        if (ext === '.jar') return 'Universal';
+        if (ext === '.zip' || ext === '.tar.gz') return null;
+        return null;
+      };
+
+      const osFromName = (name) => {
+        const n = fileBase(name).toLowerCase();
+        if (/windows|win32|win64/.test(n)) return 'Windows';
+        if (/mac|darwin|osx/.test(n)) return 'macOS';
+        if (/linux|gnu/.test(n)) return 'Linux';
+        return null;
+      };
+
+      const labelFor = (input) => {
+        const name = fileBase(input);
+        const ext = extOf(name);
+        const baseOS = osFromExt(ext) || osFromName(name) || '';
+        const arch = archFromName(name);
+        const extNote = ext ? (ext === '.tar.gz' ? '(.tar.gz)' : `(${ext})`) : '';
+
+        // Friendly architecture labels for common OSes
+        const archLabel = arch === 'x86_64' ? (baseOS === 'Windows' ? 'x64' : 'x86_64')
+                         : arch === 'arm64' ? 'ARM64'
+                         : arch === 'i386' ? 'x86'
+                         : arch === 'universal' ? 'universal'
+                         : arch || null;
+
+        // Special cases
+        if (ext === '.jar') return 'Universal (JAR)';
+        if (baseOS === 'Snap')
+          return archLabel ? `Snap (${archLabel})` : 'Snap';
+        if (baseOS === 'Flatpak')
+          return archLabel ? `Flatpak (${archLabel})` : 'Flatpak';
+        if (baseOS === 'AppImage')
+          return archLabel ? `AppImage (${archLabel})` : 'AppImage';
+
+        if (baseOS) {
+          return archLabel ? `${baseOS} (${archLabel}) ${extNote}` : `${baseOS} ${extNote}`;
+        }
+
+        // Generic archives: try to include OS/arch if present
+        const inferredOS = osFromName(name);
+        if (inferredOS) {
+          return archLabel ? `${inferredOS} (${archLabel}) ${extNote}` : `${inferredOS} ${extNote}`;
+        }
+
+        // Fallback to filename
+        return name;
+      };
+
+      const isChecksum = (name) => {
+        const n = fileBase(name).toLowerCase();
+        return /sha256sum/.test(n) || /sha256sums\.txt$/.test(n) || /checksums?/.test(n);
+      };
+
+      const chooseBest = (assets) => {
+        const pool = assets.filter(a => !isChecksum(a.name));
+        const os = osFromUA();
+        const distro = distroFromUA();
+        const order = [];
+        if (os === 'mac') order.push(...EXT_PRIORITIES.mac);
+        else if (os === 'win') order.push(...EXT_PRIORITIES.win);
+        else if (os === 'linux') {
+          if (distro === 'deb') order.push(...EXT_PRIORITIES.deb);
+          if (distro === 'rpm') order.push(...EXT_PRIORITIES.rpm);
+          // keep neutral ordering for nix formats; recommendation shown via hint
+          order.push(...EXT_PRIORITIES.nix);
+        }
+        order.push(...EXT_PRIORITIES.any);
+
+        const byPriority = (a, b) => order.indexOf(extOf(a.name)) - order.indexOf(extOf(b.name));
+        const candidates = pool
+          .filter(a => a.browser_download_url)
+          .filter(a => order.includes(extOf(a.name)));
+
+        if (candidates.length) {
+          candidates.sort(byPriority);
+          return candidates[0];
+        }
+        return pool[0] || null;
+      };
+
+      const GROUP_ORDER = {
+        'Windows': 10,
+        'macOS': 20,
+        'Debian/Ubuntu': 30,
+        'Fedora/RHEL/openSUSE': 40,
+        'AppImage': 50,
+        'Flatpak': 60,
+        'Snap': 70,
+        'Universal': 80,
+        'Other': 90,
+        'Checksum': 95
+      };
+
+      const ARCH_ORDER = {
+        'x86_64': 0,
+        'arm64': 1,
+        'i386': 2,
+        'armv7': 3,
+        'armhf': 4,
+        'ppc64le': 5,
+        's390x': 6,
+        'universal': 7,
+        '': 8,
+      };
+
+      const extOrderForGroup = (group) => {
+        if (group === 'Windows') return EXT_PRIORITIES.win;
+        if (group === 'macOS') return EXT_PRIORITIES.mac;
+        if (group === 'Debian/Ubuntu') return EXT_PRIORITIES.deb;
+        if (group === 'Fedora/RHEL/openSUSE') return EXT_PRIORITIES.rpm;
+        if (group === 'AppImage' || group === 'Flatpak' || group === 'Snap') return EXT_PRIORITIES.nix;
+        if (group === 'Universal') return ['.jar'];
+        return EXT_PRIORITIES.any;
+      };
+
+      const metaFor = (a) => {
+        const filename = fileBase(a.name || a.browser_download_url || '');
+        const ext = extOf(filename);
+        let group = osFromExt(ext) || osFromName(filename) || 'Other';
+        if (/sha256sum/i.test(filename) || /sha256.*\.txt$/i.test(filename)) group = 'Checksum';
+        const arch = archFromName(filename) || '';
+        const groupRank = GROUP_ORDER[group] ?? GROUP_ORDER['Other'];
+        const archRank = ARCH_ORDER[arch] ?? 9;
+        const order = extOrderForGroup(group);
+        const extRank = order.includes(ext) ? order.indexOf(ext) : 999;
+        const label = labelFor(filename);
+        return { a, filename, ext, group, groupRank, arch, archRank, extRank, label };
+      };
+
+      const sortAssets = (assets) => assets
+        .map(metaFor)
+        .sort((x, y) =>
+          x.groupRank - y.groupRank ||
+          x.archRank - y.archRank ||
+          x.extRank - y.extRank ||
+          x.label.localeCompare(y.label)
+        );
+
+      const populateSelect = (assets) => {
+        select.innerHTML = '';
+        const usedLabels = new Set();
+        const sorted = sortAssets(assets.filter(a => !isChecksum(a.name)));
+        sorted.forEach(({ a, label, filename }) => {
+          let finalLabel = label;
+          if (usedLabels.has(label)) finalLabel = `${label} — ${filename}`;
+          usedLabels.add(label);
+          const opt = document.createElement('option');
+          opt.value = a.browser_download_url;
+          opt.textContent = finalLabel;
+          select.appendChild(opt);
+        });
+      };
+
+      const applyChoice = (asset) => {
+        if (!asset) return;
+        button.href = asset.browser_download_url;
+        button.target = '_blank';
+        button.rel = 'noopener noreferrer';
+        const fullLabel = labelFor(asset.name);
+        button.textContent = `Download ${fullLabel}`;
+        if (hint) {
+          const os = osFromUA();
+          if (os === 'linux') {
+            hint.innerHTML = `${fullLabel} selected. <span class="release-note">Linux desktops: Ubuntu → Snap; other distros → Flatpak. Linux servers: prefer native packages (.deb for Debian/Ubuntu, .rpm for Fedora/RHEL/openSUSE).</span>`;
+          } else {
+            hint.textContent = `${fullLabel} selected.`;
+          }
+        }
+        select.value = asset.browser_download_url;
+        setExternalTargets();
+      };
+
+      const fallback = () => {
+        button.href = 'https://github.com/crypta-network/cryptad/releases/latest';
+        button.target = '_blank';
+        button.rel = 'noopener noreferrer';
+        button.textContent = 'Download (Choose from Releases)';
+        if (hint) hint.textContent = 'Unable to auto‑detect. Pick from Releases.';
+        select.innerHTML = '';
+        setExternalTargets();
+      };
+
+      if (!select || !button) return;
+
+      fetch(API, { headers: { 'Accept': 'application/vnd.github+json' } })
+        .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+        .then(data => {
+          const assets = Array.isArray(data.assets) ? data.assets : [];
+          if (!assets.length) return fallback();
+          populateSelect(assets);
+          applyChoice(chooseBest(assets));
+        })
+        .catch(() => fallback());
+
+      select.addEventListener('change', (e) => {
+        const url = e.target.value;
+        const selText = (e.target.options[e.target.selectedIndex] || {}).textContent || labelFor(url);
+        button.href = url;
+        button.target = '_blank';
+        button.rel = 'noopener noreferrer';
+        button.textContent = `Download ${selText}`;
+        setExternalTargets();
+      });
+    })();
+
+    (function () {
+      const yearEl = document.getElementById('footer-year');
+      if (yearEl) {
+        yearEl.textContent = new Date().getFullYear();
+      }
+      // Ensure any anchors added by other scripts are upgraded as well
+      const upgrade = () => {
+        const anchors = document.querySelectorAll('a[href^="http"]');
+        anchors.forEach(a => {
+          try {
+            const url = new URL(a.href, location.href);
+            if (url.origin !== location.origin) {
+              a.target = '_blank';
+              const rel = (a.getAttribute('rel') || '').split(/\s+/).filter(Boolean);
+              if (!rel.includes('noopener')) rel.push('noopener');
+              if (!rel.includes('noreferrer')) rel.push('noreferrer');
+              a.setAttribute('rel', rel.join(' '));
+            }
+          } catch {}
+        });
+      };
+      upgrade();
+    })();
+  </script>
+</body>
+</html>
