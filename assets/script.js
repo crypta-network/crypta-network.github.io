@@ -366,46 +366,38 @@ const ThemeSwitcherModule = (() => {
       return null;
     };
 
+    const extNoteFor = (ext) => {
+      if (!ext) return '';
+      return ext === '.tar.gz' ? '(.tar.gz)' : `(${ext})`;
+    };
+
+    const archLabelFor = (arch, baseOS) => {
+      if (!arch) return null;
+      if (arch === 'x86_64') return baseOS === 'Windows' ? 'x64' : 'x86_64';
+      if (arch === 'arm64') return 'ARM64';
+      if (arch === 'i386') return 'x86';
+      if (arch === 'universal') return 'universal';
+      return arch;
+    };
+
+    const composeLabel = (osName, archLabel, extNote) => (
+      archLabel ? `${osName} (${archLabel}) ${extNote}` : `${osName} ${extNote}`
+    );
+
+    const isSpecialOS = (osName) => osName === 'Snap' || osName === 'Flatpak' || osName === 'AppImage';
+
     const labelFor = (input) => {
       const name = fileBase(input);
       const ext = extOf(name);
+      if (ext === '.jar') return 'Universal (JAR)';
+
       const baseOS = osFromExt(ext) || osFromName(name) || '';
       const arch = archFromName(name);
-      let extNote = '';
-      if (ext) {
-        extNote = (ext === '.tar.gz') ? '(.tar.gz)' : `(${ext})`;
-      }
+      const archLabel = archLabelFor(arch, baseOS);
+      const extNote = extNoteFor(ext);
 
-      let archLabel;
-      if (arch === 'x86_64') {
-        archLabel = baseOS === 'Windows' ? 'x64' : 'x86_64';
-      } else if (arch === 'arm64') {
-        archLabel = 'ARM64';
-      } else if (arch === 'i386') {
-        archLabel = 'x86';
-      } else if (arch === 'universal') {
-        archLabel = 'universal';
-      } else if (arch) {
-        archLabel = arch;
-      }
-
-      if (ext === '.jar') return 'Universal (JAR)';
-      if (baseOS === 'Snap')
-        return archLabel ? `Snap (${archLabel})` : 'Snap';
-      if (baseOS === 'Flatpak')
-        return archLabel ? `Flatpak (${archLabel})` : 'Flatpak';
-      if (baseOS === 'AppImage')
-        return archLabel ? `AppImage (${archLabel})` : 'AppImage';
-
-      if (baseOS) {
-        return archLabel ? `${baseOS} (${archLabel}) ${extNote}` : `${baseOS} ${extNote}`;
-      }
-
-      const inferredOS = osFromName(name);
-      if (inferredOS) {
-        return archLabel ? `${inferredOS} (${archLabel}) ${extNote}` : `${inferredOS} ${extNote}`;
-      }
-
+      if (isSpecialOS(baseOS)) return composeLabel(baseOS, archLabel, '');
+      if (baseOS) return composeLabel(baseOS, archLabel, extNote);
       return name;
     };
 
