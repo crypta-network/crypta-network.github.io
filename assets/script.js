@@ -299,7 +299,7 @@ const ThemeSwitcherModule = (() => {
     const detectClient = async () => {
       const os = osFromUA();
       const ch = await detectViaUAClientHints();
-      clientInfo = ch ? ch : { os, arch: null, bitness: null };
+      clientInfo = ch ?? { os, arch: null, bitness: null };
       return clientInfo;
     };
 
