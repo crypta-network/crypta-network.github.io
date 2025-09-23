@@ -221,7 +221,7 @@ const ThemeSwitcherModule = (() => {
   // Downloads + external link upgrades
   const DownloadModule = (() => {
     const API = 'https://api.github.com/repos/crypta-network/cryptad/releases/latest';
-    let select, button, hint, mql;
+    let select, button, hint;
 
     const setExternalTargets = () => {
       const anchors = document.querySelectorAll('a[href^="http"]');
@@ -276,7 +276,7 @@ const ThemeSwitcherModule = (() => {
         ]);
         const arch = (hints.architecture || '').toLowerCase();
         const bits = (hints.bitness || '').toLowerCase();
-        let archNorm = null;
+        let archNorm;
         if (arch === 'arm' && bits === '64') archNorm = 'arm64';
         else if (arch === 'arm' && bits === '32') archNorm = 'armv7';
         else if (arch === 'x86' && bits === '64') archNorm = 'x86_64';
@@ -313,10 +313,12 @@ const ThemeSwitcherModule = (() => {
       } catch { return String(input || ''); }
     };
 
+    const RE_TRAILING_EXT = /(\.[a-z0-9]+)$/i;
+
     const extOf = (name) => {
       const base = fileBase(name).toLowerCase();
       if (base.endsWith('.tar.gz')) return '.tar.gz';
-      const m = base.match(/(\.[a-z0-9]+)$/i);
+      const m = RE_TRAILING_EXT.exec(base);
       return m ? m[1] : '';
     };
 
@@ -368,7 +370,7 @@ const ThemeSwitcherModule = (() => {
         extNote = (ext === '.tar.gz') ? '(.tar.gz)' : `(${ext})`;
       }
 
-      let archLabel = null;
+      let archLabel;
       if (arch === 'x86_64') {
         archLabel = baseOS === 'Windows' ? 'x64' : 'x86_64';
       } else if (arch === 'arm64') {
@@ -379,8 +381,6 @@ const ThemeSwitcherModule = (() => {
         archLabel = 'universal';
       } else if (arch) {
         archLabel = arch;
-      } else {
-        archLabel = null;
       }
 
       if (ext === '.jar') return 'Universal (JAR)';
