@@ -356,8 +356,11 @@ section {
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  background: var(--card-bg);
-  color: inherit;
+  background-color: var(--input-bg);
+  color: var(--input);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 /* Buttons */
