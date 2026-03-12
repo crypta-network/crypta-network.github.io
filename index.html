@@ -94,7 +94,7 @@
           <article class="card">
             <h3>A better platform</h3>
             <ul>
-              <li>Kotlin‑first codebase and stable plugin SDK.</li>
+              <li>Java 25+ codebase and stable plugin SDK.</li>
               <li>Typed configuration and testable interfaces.</li>
               <li>Privacy‑preserving observability and benchmarking.</li>
             </ul>
@@ -156,15 +156,15 @@
       <section id="build">
         <div class="section-heading">
           <span>Build</span>
-          <h2>Build with Gradle; Java 21+, Kotlin 2.2+.</h2>
-          <p>Use the included Gradle Wrapper. If you trust the committed wrapper, you can build immediately.</p>
+          <h2>Build with Gradle; Java 25+.</h2>
+          <p>Use the included Gradle Wrapper. No Kotlin toolchain is required.</p>
         </div>
         <div class="cards">
           <article class="card">
             <h3>Compile & test</h3>
             <ul>
               <li><code>./gradlew buildJar</code> — builds the node JAR.</li>
-              <li><code>./gradlew --parallel test</code> — run tests in parallel.</li>
+              <li><code>./gradlew test</code> — run the test suite.</li>
               <li><code>./gradlew assembleCryptadDist</code> — assemble portable dist.</li>
             </ul>
           </article>
@@ -212,7 +212,7 @@
 
     <footer>
       <span>© <span id="footer-year"></span> Crypta Network.</span>
-      <span id="license-summary">GPLv3 • Java 21+ • Kotlin 2.2+ • Gradle</span>
+      <span id="license-summary">GPLv3 • Java 25+ • Gradle</span>
     </footer>
   </div>
 
